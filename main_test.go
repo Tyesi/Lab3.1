@@ -37,3 +37,7 @@ func TestAdditionHandler(t *testing.T) {
 	}
 
 }
+
+func TestFail(t *testing.T) {
+    t.Errorf("Este test falla a propósito")
+}
