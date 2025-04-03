@@ -1,4 +1,4 @@
-name: Go Build and Test
+name: Go
 on:
   push:
     branches: [ "main" ]
@@ -8,22 +8,38 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-
-    - name: Show repository info
-      run: echo "💡 The ${{ github.repository }} repository has been cloned."
-
-    - name: List files
-      run: ls ${{ github.workspace }}
-
+    - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+    - name: List files in the repository
+      run: |
+          ls $GITHUB_WORKSPACE
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.21.5'
-
+    - name: Initialize Go module
+      run: |
+        if [ ! -f $GITHUB_WORKSPACE/go.mod ]; then
+          echo "Initializing Go module..."
+          cd $GITHUB_WORKSPACE
+          go mod init mymodule  # Reemplaza 'mymodule' con el nombre de tu módulo
+        else
+          echo "Go module already initialized."
+        fi
+    - name: Restore Go dependencies cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
     - name: Build
-      run: go build -v ./...
+      run: |
+        cd $GITHUB_WORKSPACE
+        go build -v ./...
     - name: Test
-      run: go test -v ./..
-
-    - name: Show job status
-      run: echo "🍏 Job status:${{ job.status }}. "
+      run: |
+        cd $GITHUB_WORKSPACE
+        go test -v ./...  
+    - run: echo "🍏 This job's status is ${{ job.status }}."
